@@ -56,22 +56,25 @@ public class MercadoBitcoin {
         try {
             File file = new File(JSON_FILE_PATH);
 
-            if (!file.exists()) {
+            boolean existsFile = file.exists();
+
+            if (!existsFile) {
                 try {
-                    file.createNewFile();
+                    existsFile = file.createNewFile();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
-            byte[] bytes = Files.readAllBytes(Paths.get(JSON_FILE_PATH));
+            if (existsFile) {
+                byte[] bytes = Files.readAllBytes(Paths.get(JSON_FILE_PATH));
 
-            if (bytes.length > 0) {
-                Historico = this.gson.fromJson(new String(bytes), Historico.class);
+                if (bytes.length > 0) {
+                    Historico = this.gson.fromJson(new String(bytes), Historico.class);
 
-                Historico.getPrecos().forEach(preco -> preco.setJson(this.gson.toJson(preco)));
+                    Historico.getPrecos().forEach(preco -> preco.setJson(this.gson.toJson(preco)));
+                }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -167,7 +170,6 @@ public class MercadoBitcoin {
         return preco;
     }
 
-    // Query da API
     private String queryPreco(int ano, int mes, int dia) {
         String query = "/day-summary/{ano}/{mes}/{dia}";
 
@@ -178,23 +180,18 @@ public class MercadoBitcoin {
 
     private synchronized void atualizarJson() {
         try {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] jsonBytes = gson.toJson(historico).getBytes();
+            Thread thread = new Thread(() -> {
+                byte[] jsonBytes = gson.toJson(historico).getBytes();
 
-                    try {
-                        Files.write(Paths.get(JSON_FILE_PATH), jsonBytes);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    Files.write(Paths.get(JSON_FILE_PATH), jsonBytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             });
 
             thread.start();
             thread.join();
-
-            //Thread.sleep(1000L);
 
         } catch (InterruptedException e) {
             e.printStackTrace();

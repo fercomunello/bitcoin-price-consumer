@@ -167,6 +167,7 @@ public class MercadoBitcoin {
         return preco;
     }
 
+    // Query da API
     private String queryPreco(int ano, int mes, int dia) {
         String query = "/day-summary/{ano}/{mes}/{dia}";
 
